@@ -198,8 +198,6 @@ class Rack::CloudflareJwt::Auth
   def fetch_public_keys
     json = Net::HTTP.get(team_domain, CERTS_PATH)
     json.empty? ? [] : MultiJson.load(json, symbolize_keys: true).fetch(:keys)
-  rescue StandardError
-    []
   end
 
   # Private: Get cached public keys.

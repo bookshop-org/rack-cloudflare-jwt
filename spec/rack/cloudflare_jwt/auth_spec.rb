@@ -144,16 +144,30 @@ describe Rack::CloudflareJwt::Auth do
   describe '#public_keys' do
     let(:cache) { double }
 
-    before do
-      allow(app).to receive(:cache) { cache }
-      allow(cache).to receive(:fetch).and_yield(->(&block) { block.call })
-      stub_request(:get, /#{described_class::CERTS_PATH}/o).to_return(status: 200, body: <<-JSON)
-        {"keys":[{"kid":"b18283ffda890c840aa529674e75f9e59514409e5e55e2d0bad5795858e66228","kty":"RSA","alg":"RS256","use":"sig","e":"AQAB","n":"vy-V_OfLu6T57U-xRzSo9mHzgSwa6-z_qQFquwxp0SlqCGr04Wd2AO2u9pUA0MNNbp_GtIarbBvMqwMIkjIF-YkUS7Nme4H64nryTVPEnvMsOO1U0BNs1FxMhhBfy2f3gI6wfXfaRGiJuadZjCQVBjXor9sjhWAeU3ONGaOxUfgK-paB5VaLwcJh-RouG2GZvRI96Be23s0lmp0c-jkfY2yxmEhkwp5bvplEDPQL13mdigt1epUyAYTGYR22c06iViiZMQSPrsivfQXay8vCGQWWTEf5gS6DPsUkrc-7eFjYO_2nj7fJVf4IrFv54ZiFCXx0-UgSWtxH69hJkxdzpQ"},{"kid":"ac2790adb86610b4aac3b5b2512f755dd817af640afbcec7763635c701c4f566","kty":"RSA","alg":"RS256","use":"sig","e":"AQAB","n":"1bfNhQpbF5rC-9WeGJUXDAEwKS5BFaKBJI2RXqcabhTF5qErClzT147DOK5AXKarMV-zcLmOkK8qZklmxtJhcJ_MfH3c7rtGY6TqTvwU9SqBFq6YBDfZEVaxY-78xzWzYefilywE8cpzgYZXC56iRe0n-bCXu8HQD_p3CXExjRqS--Pmr1-y27XxG8QH7WR7ETr9gnfTqAvMPw-B3C7FxVcNTqorycpiow5Jiqr9SxyxZgZ79lwQ5WiQTeB0WLg7XfSK3kEqZ63NsAO03N6AQT-QQQprMYg8oZ85aOlbEh8TahRZXeZiJ2jbEFDJoyuqCwroA1kgzaLKjSpjeOzXHw"}],"public_cert":{"kid":"b18283ffda890c840aa529674e75f9e59514409e5e55e2d0bad5795858e66228","cert":"-----BEGIN CERTIFICATE-----\\nMIIDUTCCAjmgAwIBAgIRAJrBOaRWSa+JYrHKcIYyKu0wDQYJKoZIhvcNAQELBQAw\\nYjELMAkGA1UEBhMCVVMxDjAMBgNVBAgTBVRleGFzMQ8wDQYDVQQHEwZBdXN0aW4x\\nEzARBgNVBAoTCkNsb3VkZmxhcmUxHTAbBgNVBAMTFGNsb3VkZmxhcmVhY2Nlc3Mu\\nY29tMB4XDTIwMDIyNDE2MTEwOFoXDTIwMDQyNDE2MTEwOFowYjELMAkGA1UEBhMC\\nVVMxDjAMBgNVBAgTBVRleGFzMQ8wDQYDVQQHEwZBdXN0aW4xEzARBgNVBAoTCkNs\\nb3VkZmxhcmUxHTAbBgNVBAMTFGNsb3VkZmxhcmVhY2Nlc3MuY29tMIIBIjANBgkq\\nhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvy+V/OfLu6T57U+xRzSo9mHzgSwa6+z/\\nqQFquwxp0SlqCGr04Wd2AO2u9pUA0MNNbp/GtIarbBvMqwMIkjIF+YkUS7Nme4H6\\n4nryTVPEnvMsOO1U0BNs1FxMhhBfy2f3gI6wfXfaRGiJuadZjCQVBjXor9sjhWAe\\nU3ONGaOxUfgK+paB5VaLwcJh+RouG2GZvRI96Be23s0lmp0c+jkfY2yxmEhkwp5b\\nvplEDPQL13mdigt1epUyAYTGYR22c06iViiZMQSPrsivfQXay8vCGQWWTEf5gS6D\\nPsUkrc+7eFjYO/2nj7fJVf4IrFv54ZiFCXx0+UgSWtxH69hJkxdzpQIDAQABowIw\\nADANBgkqhkiG9w0BAQsFAAOCAQEAtoSWQEbcb2EhQOLaxXA+Dupfsy+cZNsjKhq8\\nlOex8RZvMsj69FPofiJTxAR3RTwQiWDTmx3kUvBbIr2IrKtUllD8/jO/GzAyd93c\\nrzZcLk3CNPNzKkbRFtM8qy4jBcupKsS2KHzDZ5uaKIad4i/s/9ld0r0fvjS3iiyJ\\nJDxwQXvzvf1fNOdb2na+tdKa/BBxz8blCybrICqH2dR2jw6YawUbGNU7zWVjR5Mc\\n2/3Q85l8qluZKARDUUL1uG3aeiIWhzuVvxYwisUBXIBvVqXB2V7xIiRAfIYscT4s\\ngktcHT8x59pgl1WI2UHBfJmZoecMrZXVZ5zxVOA9EVg88L/hSQ==\\n-----END CERTIFICATE-----\\n"}}
-      JSON
+    describe 'when fetch succeeds' do
+      before do
+        allow(app).to receive(:cache) { cache }
+        allow(cache).to receive(:fetch).and_yield(->(&block) { block.call })
+        stub_request(:get, /#{described_class::CERTS_PATH}/o).to_return(status: 200, body: <<-JSON)
+          {"keys":[{"kid":"b18283ffda890c840aa529674e75f9e59514409e5e55e2d0bad5795858e66228","kty":"RSA","alg":"RS256","use":"sig","e":"AQAB","n":"vy-V_OfLu6T57U-xRzSo9mHzgSwa6-z_qQFquwxp0SlqCGr04Wd2AO2u9pUA0MNNbp_GtIarbBvMqwMIkjIF-YkUS7Nme4H64nryTVPEnvMsOO1U0BNs1FxMhhBfy2f3gI6wfXfaRGiJuadZjCQVBjXor9sjhWAeU3ONGaOxUfgK-paB5VaLwcJh-RouG2GZvRI96Be23s0lmp0c-jkfY2yxmEhkwp5bvplEDPQL13mdigt1epUyAYTGYR22c06iViiZMQSPrsivfQXay8vCGQWWTEf5gS6DPsUkrc-7eFjYO_2nj7fJVf4IrFv54ZiFCXx0-UgSWtxH69hJkxdzpQ"},{"kid":"ac2790adb86610b4aac3b5b2512f755dd817af640afbcec7763635c701c4f566","kty":"RSA","alg":"RS256","use":"sig","e":"AQAB","n":"1bfNhQpbF5rC-9WeGJUXDAEwKS5BFaKBJI2RXqcabhTF5qErClzT147DOK5AXKarMV-zcLmOkK8qZklmxtJhcJ_MfH3c7rtGY6TqTvwU9SqBFq6YBDfZEVaxY-78xzWzYefilywE8cpzgYZXC56iRe0n-bCXu8HQD_p3CXExjRqS--Pmr1-y27XxG8QH7WR7ETr9gnfTqAvMPw-B3C7FxVcNTqorycpiow5Jiqr9SxyxZgZ79lwQ5WiQTeB0WLg7XfSK3kEqZ63NsAO03N6AQT-QQQprMYg8oZ85aOlbEh8TahRZXeZiJ2jbEFDJoyuqCwroA1kgzaLKjSpjeOzXHw"}],"public_cert":{"kid":"b18283ffda890c840aa529674e75f9e59514409e5e55e2d0bad5795858e66228","cert":"-----BEGIN CERTIFICATE-----\\nMIIDUTCCAjmgAwIBAgIRAJrBOaRWSa+JYrHKcIYyKu0wDQYJKoZIhvcNAQELBQAw\\nYjELMAkGA1UEBhMCVVMxDjAMBgNVBAgTBVRleGFzMQ8wDQYDVQQHEwZBdXN0aW4x\\nEzARBgNVBAoTCkNsb3VkZmxhcmUxHTAbBgNVBAMTFGNsb3VkZmxhcmVhY2Nlc3Mu\\nY29tMB4XDTIwMDIyNDE2MTEwOFoXDTIwMDQyNDE2MTEwOFowYjELMAkGA1UEBhMC\\nVVMxDjAMBgNVBAgTBVRleGFzMQ8wDQYDVQQHEwZBdXN0aW4xEzARBgNVBAoTCkNs\\nb3VkZmxhcmUxHTAbBgNVBAMTFGNsb3VkZmxhcmVhY2Nlc3MuY29tMIIBIjANBgkq\\nhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAvy+V/OfLu6T57U+xRzSo9mHzgSwa6+z/\\nqQFquwxp0SlqCGr04Wd2AO2u9pUA0MNNbp/GtIarbBvMqwMIkjIF+YkUS7Nme4H6\\n4nryTVPEnvMsOO1U0BNs1FxMhhBfy2f3gI6wfXfaRGiJuadZjCQVBjXor9sjhWAe\\nU3ONGaOxUfgK+paB5VaLwcJh+RouG2GZvRI96Be23s0lmp0c+jkfY2yxmEhkwp5b\\nvplEDPQL13mdigt1epUyAYTGYR22c06iViiZMQSPrsivfQXay8vCGQWWTEf5gS6D\\nPsUkrc+7eFjYO/2nj7fJVf4IrFv54ZiFCXx0+UgSWtxH69hJkxdzpQIDAQABowIw\\nADANBgkqhkiG9w0BAQsFAAOCAQEAtoSWQEbcb2EhQOLaxXA+Dupfsy+cZNsjKhq8\\nlOex8RZvMsj69FPofiJTxAR3RTwQiWDTmx3kUvBbIr2IrKtUllD8/jO/GzAyd93c\\nrzZcLk3CNPNzKkbRFtM8qy4jBcupKsS2KHzDZ5uaKIad4i/s/9ld0r0fvjS3iiyJ\\nJDxwQXvzvf1fNOdb2na+tdKa/BBxz8blCybrICqH2dR2jw6YawUbGNU7zWVjR5Mc\\n2/3Q85l8qluZKARDUUL1uG3aeiIWhzuVvxYwisUBXIBvVqXB2V7xIiRAfIYscT4s\\ngktcHT8x59pgl1WI2UHBfJmZoecMrZXVZ5zxVOA9EVg88L/hSQ==\\n-----END CERTIFICATE-----\\n"}}
+        JSON
+      end
+
+      it 'returns a keys' do
+        expect(app.send(:public_keys)).to contain_exactly(instance_of(OpenSSL::PKey::RSA), instance_of(OpenSSL::PKey::RSA))
+      end
     end
 
-    it 'returns a keys' do
-      expect(app.send(:public_keys)).to contain_exactly(instance_of(OpenSSL::PKey::RSA), instance_of(OpenSSL::PKey::RSA))
+    describe 'when fetch fails' do
+      before do
+        allow(app).to receive(:cache) { cache }
+        allow(cache).to receive(:fetch).and_yield(->(&block) { block.call })
+        stub_request(:get, /#{described_class::CERTS_PATH}/o).to_raise(Errno::ECONNREFUSED)
+      end
+
+      it 'raises' do
+        expect {app.send(:public_keys) }.to raise_error(Errno::ECONNREFUSED)
+      end
     end
   end
 end
